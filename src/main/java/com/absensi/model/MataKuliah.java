@@ -1,4 +1,4 @@
-package com.absensi.model.model;
+package com.absensi.model;
 import jakarta.persistence.*;
 
 @Entity 

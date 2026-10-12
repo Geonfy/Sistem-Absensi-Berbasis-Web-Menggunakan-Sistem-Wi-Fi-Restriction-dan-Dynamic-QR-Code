@@ -1,4 +1,4 @@
-package com.absensi.model;
+package com.absensi;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
