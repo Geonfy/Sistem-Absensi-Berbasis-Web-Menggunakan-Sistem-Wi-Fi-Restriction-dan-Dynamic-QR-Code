@@ -1,0 +1,27 @@
+package com.absensi.model.model;
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "presensi")
+public class Presensi {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = "sesi_kelas_id")
+    private SesiKelas sesiKelas;
+
+    @ManyToOne
+    @JoinColumn(name = "mahasiswa_id")
+    private User mahasiswa;
+
+    private LocalDateTime waktuAbsen;
+    
+    @Enumerated(EnumType.STRING)
+    private StatusPresensi status; 
+    public enum StatusPresensi { HADIR, ALPA, IZIN, SAKIT }
+
+    private String ipAddress;
+}
