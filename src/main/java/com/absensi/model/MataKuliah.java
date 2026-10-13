@@ -1,6 +1,8 @@
 package com.absensi.model;
 import jakarta.persistence.*;
+import lombok.Data;
 
+@Data 
 @Entity 
 @Table(name = "mata_kuliah")
 public class MataKuliah {
