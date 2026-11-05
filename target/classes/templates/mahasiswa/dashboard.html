@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Portal Mahasiswa - Presensi QR</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Library Kamera Scanner QR Code -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+</head>
+<body class="bg-light">
+
+    <!-- Navbar Mahasiswa -->
+    <nav class="navbar navbar-dark bg-success shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="#">Portal Mahasiswa</a>
+            <div class="text-white">
+                <span class="me-3 small">
+                    <strong th:text="${mahasiswa?.namaLengkap}">Mahasiswa</strong> 
+                    (<span th:text="${mahasiswa?.nomorInduk}">NIM</span>)
+                </span>
+                <a th:href="@{/logout}" class="btn btn-light btn-sm fw-bold text-success">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+
+        <!-- Notifikasi Sukses / Gagal Presensi -->
+        <div th:if="${pesanSukses}" class="alert alert-success fw-semibold shadow-sm" th:text="${pesanSukses}"></div>
+        <div th:if="${pesanError}" class="alert alert-danger fw-semibold shadow-sm" th:text="${pesanError}"></div>
+
+        <div class="row">
+            <!-- Kolom Kiri: Kamera Scan QR & Input Token -->
+            <div class="col-md-5 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-dark text-white fw-bold d-flex justify-content-between align-items-center">
+                        <span>Scan Dynamic QR Code</span>
+                        <span class="badge bg-secondary small" th:text="${'IP: ' + clientIp}">IP</span>
+                    </div>
+                    <div class="card-body text-center">
+                        
+                        <!-- Layar Kamera Scanner -->
+                        <div id="reader" class="mb-3 border rounded" style="width: 100%; display: none;"></div>
+                        
+                        <button id="btnKamera" type="button" class="btn btn-outline-success w-100 mb-3 fw-semibold" onclick="mulaiKamera()">
+                            Buka Kamera Scanner QR
+                        </button>
+
+                        <hr>
+
+                        <!-- Form Pengiriman Token QR -->
+                        <form id="formAbsen" th:action="@{/mahasiswa/absen}" method="post">
+                            <div class="mb-3 text-start">
+                                <label class="form-label fw-semibold small">Kode Token QR (Otomatis terisi saat scan / ketik manual):</label>
+                                <input type="text" id="qrTokenInput" name="qrToken" class="form-control text-center fw-bold" 
+                                       placeholder="Contoh: SESI-4-736B147B" required>
+                            </div>
+                            <button type="submit" class="btn btn-success w-100 fw-bold">
+                                Kirim Presensi Sekarang
+                            </button>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kolom Kanan: Tabel Riwayat Kehadiran Mahasiswa -->
+            <div class="col-md-7">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white fw-bold">Riwayat Kehadiran Saya</div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped align-middle mb-0">
+                                <thead class="table-light text-center">
+                                    <tr>
+                                        <th>Mata Kuliah</th>
+                                        <th>Pertemuan</th>
+                                        <th>Waktu Absen</th>
+                                        <th>IP Perangkat</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="p : ${riwayatPresensi}">
+                                        <td class="fw-semibold" th:text="${p.sesiKelas?.mataKuliah?.namaMk}">Nama MK</td>
+                                        <td class="text-center" th:text="${'Ke-' + p.sesiKelas?.pertemuanKe}">Ke-1</td>
+                                        <td class="text-center small" th:text="${p.waktuAbsen != null ? #strings.replace(p.waktuAbsen.toString(), 'T', ' ') : '-'}">Waktu</td>
+                                        <td class="text-center small text-muted" th:text="${p.ipAddress}">127.0.0.1</td>
+                                        <td class="text-center">
+                                            <span class="badge bg-success" th:text="${p.status}">HADIR</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let html5QrcodeScanner = null;
+
+        function mulaiKamera() {
+            const readerDiv = document.getElementById('reader');
+            readerDiv.style.display = 'block';
+
+            html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 220, rememberLastUsedCamera: true });
+            html5QrcodeScanner.render(onScanSuccess);
+        }
+        let sudahKirim = false;
+
+        function onScanSuccess(decodedText) {
+            if (sudahKirim) return; // Mencegah pengiriman ganda
+            sudahKirim = true;
+            document.getElementById('qrTokenInput').value = decodedText;
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.clear();
+            }
+            document.getElementById('formAbsen').submit();
+        }
+
+    </script>
+</body>
+</html>

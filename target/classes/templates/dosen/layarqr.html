@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Dynamic QR Code Presensi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Library pembuat gambar QR Code -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body class="bg-light">
+
+    <nav class="navbar navbar-dark bg-dark shadow-sm">
+        <div class="container">
+            <span class="navbar-brand fw-bold">Layar Proyektor Kelas - Dynamic QR Code</span>
+            <a th:href="@{/dosen/dashboard}" class="btn btn-outline-light btn-sm">Kembali ke Dashboard</a>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <!-- Kotak QR Code yang Berubah Tiap 15 Detik -->
+            <div class="col-md-6 text-center mb-4">
+                <div class="card shadow p-4">
+                    <h4 class="fw-bold text-primary mb-1" th:text="${sesi.mataKuliah?.namaMk}">Nama Mata Kuliah</h4>
+                    <p class="text-muted mb-3">
+                        Pertemuan Ke-<span th:text="${sesi.pertemuanKe}">1</span> | 
+                        Ruangan: <strong th:text="${sesi.ruangan}">R.301</strong>
+                    </p>
+
+                    <!-- Tempat Gambar QR Code Muncul -->
+                    <div class="d-flex justify-content-center my-3">
+                        <div id="qrcode" class="p-3 bg-white border rounded shadow-sm"></div>
+                    </div>
+
+                    <!-- Kode Token & Hitung Mundur 15 Detik -->
+                    <div class="mt-2">
+                        <span class="badge bg-dark fs-6 px-3 py-2" id="tokenText">Memuat Token...</span>
+                    </div>
+                    <p class="text-danger fw-bold mt-3 mb-0">
+                        QR Code berganti otomatis dalam: <span id="timer" class="fs-4">15</span> detik
+                    </p>
+                </div>
+            </div>
+
+            <!-- Daftar Mahasiswa yang Sudah Berhasil Absen di Sesi Ini -->
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                        <span class="fw-bold">Daftar Mahasiswa Hadir</span>
+                    </div class="d-flex gap-2">
+                        <a th:href="@{'/dosen/sesi/' + ${sesi.id} + '/export'}" class="btn btn-warning btn-sm fw-semibold">Ekspor CSV</a>
+                        <a th:href="@{'/dosen/sesi/' + ${sesi.id} + '/qr'}" class="btn btn-light btn-sm fw-semibold">Refresh Data</a>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped table-bordered align-middle mb-0">
+                            <thead class="table-light text-center">
+                                <tr>
+                                    <th>NIM</th>
+                                    <th>Nama Mahasiswa</th>
+                                    <th>Status</th>
+                                    <th>IP Address</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="p : ${daftarHadir}">
+                                    <td class="text-center fw-bold" th:text="${p.mahasiswa?.nomorInduk}">NIM</td>
+                                    <td th:text="${p.mahasiswa?.namaLengkap}">Nama</td>
+                                    <td class="text-center"><span class="badge bg-success" th:text="${p.status}">HADIR</span></td>
+                                    <td class="text-center small text-muted" th:text="${p.ipAddress}">127.0.0.1</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+    const sesiId = /*[[${sesi.id}]]*/ 1;
+    const REFRESH_SECONDS = 15;
+    let countdown = REFRESH_SECONDS;
+    let sedangFetch = false;
+
+    const qrcodeContainer = document.getElementById("qrcode");
+    const tokenText = document.getElementById("tokenText");
+    const timerSpan = document.getElementById("timer");
+
+    function fetchNewQrToken() {
+        if (sedangFetch) return;
+        sedangFetch = true;
+        fetch('/dosen/api/qr-token/' + sesiId)
+            .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+            .then(data => {
+                qrcodeContainer.innerHTML = "";
+                new QRCode(qrcodeContainer, { text: data.token, width: 240, height: 240 });
+                tokenText.innerText = "Token: " + data.token;
+                countdown = REFRESH_SECONDS;
+            })
+            .catch(() => {
+                tokenText.innerText = "Gagal memuat token, mencoba lagi...";
+                countdown = 3;
+            })
+            .finally(() => { sedangFetch = false; });
+    }
+
+    fetchNewQrToken();
+
+    setInterval(() => {
+        countdown--;
+        timerSpan.innerText = Math.max(countdown, 0);
+        if (countdown <= 0) fetchNewQrToken();
+    }, 1000);
+</script>
+</body>
+</html>

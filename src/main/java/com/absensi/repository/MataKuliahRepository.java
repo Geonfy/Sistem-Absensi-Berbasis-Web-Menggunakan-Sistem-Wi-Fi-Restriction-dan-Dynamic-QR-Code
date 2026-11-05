@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface MataKuliahRepository extends JpaRepository<MataKuliah, Long> {
-    
+    boolean existsByKodeMk(String kodeMk);
 }

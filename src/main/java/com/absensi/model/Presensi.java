@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 
 @Data 
 @Entity
-@Table(name = "presensi")
+@Table(name = "presensi",uniqueConstraints = @UniqueConstraint(columnNames = {"sesi_kelas_id", "mahasiswa_id"}))
 public class Presensi {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
