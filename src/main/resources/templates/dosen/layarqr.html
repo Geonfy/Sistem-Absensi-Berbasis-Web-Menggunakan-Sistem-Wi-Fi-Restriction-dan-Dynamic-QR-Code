@@ -47,9 +47,10 @@
                 <div class="card shadow-sm">
                     <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
                         <span class="fw-bold">Daftar Mahasiswa Hadir</span>
-                    </div class="d-flex gap-2">
+                    <div class="d-flex gap-2">
                         <a th:href="@{'/dosen/sesi/' + ${sesi.id} + '/export'}" class="btn btn-warning btn-sm fw-semibold">Ekspor CSV</a>
                         <a th:href="@{'/dosen/sesi/' + ${sesi.id} + '/qr'}" class="btn btn-light btn-sm fw-semibold">Refresh Data</a>
+                        </div> 
                     </div>
                     <div class="card-body">
                         <table class="table table-striped table-bordered align-middle mb-0">

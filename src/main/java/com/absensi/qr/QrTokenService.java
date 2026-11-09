@@ -32,8 +32,8 @@ public class QrTokenService {
         long now = System.currentTimeMillis();
 
         List<TokenData> list = activeTokens.computeIfAbsent(sesiId, k -> new CopyOnWriteArrayList<>());
-        list.removeIf(t -> t.getExpiryTime() < now);          // bersihkan yang sudah expired
-        list.add(new TokenData(token, now + TTL_MS));         // tambahkan, JANGAN menimpa
+        list.removeIf(t -> t.getExpiryTime() < now);          
+        list.add(new TokenData(token, now + TTL_MS));         
         return token;
     }
 
